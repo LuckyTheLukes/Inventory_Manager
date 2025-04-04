@@ -1,10 +1,5 @@
 import mysql.connector
 
-workshop_inventory = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="admin"
-)
 
 if workshop_inventory.is_connected():
     print('Connected')
