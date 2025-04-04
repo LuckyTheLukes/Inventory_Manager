@@ -1,40 +1,14 @@
-import mysql.connector
+import database_handler
+from flask import Flask, redirect, url_for, render_template
 
 
-if workshop_inventory.is_connected():
-    print('Connected')
-    dbCursor = workshop_inventory.cursor()
+database_handler.create_database_and_tables()
 
-    dbCursor.execute('SHOW DATABASES')
+app = Flask(__name__)
 
-    if [database for  database in dbCursor if 'workshop_inventory' in database]:
-        print('Database "workshop_inventory" already exists.')
-    else:
-        dbCursor.execute('CREATE DATABASE workshop_inventory')
-        print('Database "workshop_inventory" has been created.')
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-    workshop_inventory.config(database='workshop_inventory')
-    workshop_inventory.reconnect()
-
-    dbCursor.execute('SHOW TABLES')
-
-    if [table for table in dbCursor if 'users' in table]:
-        print('Table "users" already exists.')
-    else:
-        dbCursor.execute('CREATE TABLE users (user_id INT PRIMARY KEY,'
-                         'user_name VARCHAR(255) NOT NULL, is_active BOOLEAN NOT NULL)')
-        print('Table "users" has been created.')
-
-    dbCursor.execute('SHOW TABLES')
-
-    if [table for table in dbCursor if 'inventory' in table]:
-        print('Table "inventory" already exists.')
-    else:
-        dbCursor.execute('CREATE TABLE inventory (item_id INT PRIMARY KEY,'
-                         'item_name VARCHAR(255) NOT NULL, remaining_amount INT NOT NULL)')
-        print('Table "inventory" has been created.')
-
-    workshop_inventory.close()
-
-else:
-    print('Connection Failed')
+if __name__ == '__main__':
+    app.run(debug=True)
