@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Users{% endblock %}
+
+
+{% block content %}
+<h1 style="color: rgb(209, 209, 209);">Users</h1>
+
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add_user">Add User</button>
+
+<div class="modal" id=add_user tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="#", method="post">
+          <input type="text" class="form-control" placeholder="Username" aria-label="Username"
+            aria-describedby="addon-wrapping", name="user_name">
+          <input type="text" class="form-control" placeholder="Employee ID" aria-label="EmpID"
+            aria-describedby="addon-wrapping", name="emp_id">
+          <button class="btn btn-outline-success" type="submit", value="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
