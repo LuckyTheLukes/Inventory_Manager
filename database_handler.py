@@ -52,10 +52,10 @@ def read_from_database(table):
     workshop_inventory.reconnect()
     dbCursor = workshop_inventory.cursor()
 
-    dbCursor.execute(f"SELECT * FROM {table}")
+    dbCursor.execute(f"SELECT emp_id, user_name FROM {table}")
     data = dbCursor.fetchall()
     workshop_inventory.close()
-    print(data)
+    return data
 
 
 def write_to_database(table, data):

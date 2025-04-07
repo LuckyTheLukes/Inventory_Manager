@@ -8,6 +8,34 @@
 
 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add_user">Add User</button>
 
+<div class="mask rounded-4" style="background-color: rgba(255, 255, 255, 0.4); backdrop-filter: blur(4px); margin: 2% 50% auto 2%; padding: 2%;">
+  <table class="table table-secondary table-striped table-hover m-auto table-bordered">
+    <tr class="text-center table-dark">
+      <th>
+        <input class="form-check-input" name="" id="" type="checkbox" value="checkedValue"
+          aria-label="Text for screen reader" />
+      </th>
+      {% for heading in headings %}
+      <th>{{ heading }}</th>
+      {% endfor %}
+    </tr>
+
+    {% for row in data %}
+    <tr>
+      <td class="text-center">
+        <input class="form-check-input" name="" id="" type="checkbox" value="checkedValue"
+          aria-label="Text for screen reader" />
+        </td>
+      {% for cell in row %}
+      <td class="text-center">{{ cell }}</td>
+      {% endfor %}
+      <td class="text-center"><button class="btn btn-secondary">Edit</button></td>
+      <td class="text-center"><button class="btn btn-danger">Delete</button></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
 <div class="modal" id=add_user tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -16,12 +44,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form action="#", method="post">
+        <form action="#" , method="post">
           <input type="text" class="form-control" placeholder="Username" aria-label="Username"
-            aria-describedby="addon-wrapping", name="user_name">
+            aria-describedby="addon-wrapping" , name="user_name">
           <input type="text" class="form-control" placeholder="Employee ID" aria-label="EmpID"
-            aria-describedby="addon-wrapping", name="emp_id">
-          <button class="btn btn-outline-success" type="submit", value="submit">Submit</button>
+            aria-describedby="addon-wrapping" , name="emp_id">
+          <button class="btn btn-outline-success" type="submit" , value="submit">Submit</button>
         </form>
       </div>
     </div>
