@@ -1,5 +1,5 @@
 import database_handler
-from flask import Flask, redirect, request, url_for, render_template
+from flask import Flask, flash, redirect, request, url_for, render_template
 
 
 database_handler.create_database_and_tables()
@@ -23,7 +23,17 @@ def manage_users():
     
     headings = ('Employee ID', 'Name', '', '')
     data = database_handler.read_from_database("users")
+    print(data)
     return render_template("/users.html", headings=headings, data=data)
+
+@app.route("/edit/<string:empID>", methods=["POST", "GET"])
+def edit_user(empID):
+    return f"Edit page for {empID}"
+
+@app.route("/delete/<string:empID>", methods=["POST", "GET"])
+def delete_user(empID):
+    return f"User with Employee ID {empID} has been deleted!"
+
 
 if __name__ == '__main__':
     app.run(debug=True)
