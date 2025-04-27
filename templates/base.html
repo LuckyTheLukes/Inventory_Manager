@@ -2,14 +2,18 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='icons/font/bootstrap-icons.css') }}">
+    <meta charset="UTF-8"> <!-- Set character encoding -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ensure mobile responsiveness -->
+    <title>{% block title %}{% endblock %}</title> <!-- Dynamic page title -->
 
+    <!-- Link to Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <!-- Link to Bootstrap Icons CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='icons/font/bootstrap-icons.css') }}">
+    <!-- Link to DataTables CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='datatables/css/datatables.min.css') }}">
 
+    <!-- Inline style to customize DataTables appearance -->
     <style>
         table.dataTable thead th {
             background-color: rgba(255, 255, 255, 0.05);
@@ -17,24 +21,23 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center !important;
         }
-
         table.dataTable tbody td {
             background-color: transparent;
             text-align: center !important;
         }
     </style>
-
 </head>
 
 <body>
+    <!-- Background image and mask overlay -->
     <div style="background-image: url('/static/background.jpg'); background-repeat: no-repeat; background-size: cover;">
         <div class="mask" style="background-color: rgba(0, 0, 0, 0.4); height: 100vh;">
+
+            <!-- Navigation bar -->
             <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="/">AVL Inventory</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -50,39 +53,44 @@
                 </div>
             </nav>
 
+            <!-- Flash messages display -->
             <div style="position: fixed; top: 1rem; right: 1rem; z-index: 1055;">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show shadow" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-                {% endif %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 {% endwith %}
             </div>
 
+            <!-- Dynamic page content -->
             {% block content %}{% endblock %}
 
         </div>
     </div>
 
+    <!-- jQuery -->
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-
+    <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
-
+    <!-- DataTables JS -->
     <script src="{{ url_for('static', filename='datatables/js/datatables.min.js') }}"></script>
 
+    <!-- Initialize DataTables -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             $('.datatable').DataTable({
-                scrollX: false,
-                autoWidth: true
+                scrollX: true, // Disable horizontal scroll
+                autoWidth: true // Auto adjust column widths
             });
         });
     </script>
 
+    <!-- Auto close flash alerts after 6 seconds -->
     <script>
         setTimeout(() => {
             const alerts = document.querySelectorAll('.alert');
