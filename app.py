@@ -1,20 +1,21 @@
 from datetime import datetime, timezone
 from flask import Flask, flash, redirect, render_template, request, url_for
-from flask_sqlalchemy import SQLAlchemy
+from models import db, User, Inventory
+
 
 app = Flask(__name__)
 app.secret_key = "S9uh4b$meDiJ#nBr"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///workshop_inventory.sqlite3"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(app)
+db.init_app(app)
 
+""" db = SQLAlchemy(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     emp_id = db.Column(db.Integer, unique=True, nullable=False)
     user_name = db.Column(db.String(100), nullable=False)
-
 
 class Inventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,45 +31,65 @@ class Inventory(db.Model):
     remarks = db.Column(db.String(255))
     date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     last_updated = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True) """
 
 
 @app.route("/")
 def index():
-    inventory = Inventory.query.all()
-    return render_template("index.html", inventory=inventory)
+    inventory = Inventory.query.filter_by(is_active=True).all()
+    users = User.query.all()
+    return render_template("index.html", inventory=inventory, users=users)
 
 
 @app.route("/add_item", methods=["POST"])
 def add_item():
-    item_name = request.form["item_name"]
-    brand = request.form["brand"]
-    model = request.form["model"]
-    serial_number = request.form["serial_number"]
-    quantity = request.form["quantity"]
-    unit = request.form["unit"]
-    category = request.form["category"]
-    location = request.form["location"]
-    min_stock = request.form["min_stock"]
-    remarks = request.form["remarks"]
-
-    new_item = Inventory(
-        item_name=item_name,
-        brand=brand,
-        model=model,
-        serial_number=serial_number,
-        quantity=quantity,
-        unit=unit,
-        category=category,
-        location=location,
-        min_stock=min_stock,
-        remarks=remarks,
-    )
-
     try:
+        new_item = Inventory(
+            item_name=request.form["item_name"],
+            brand=request.form["brand"] or "-",
+            model=request.form["model"] or "-",
+            serial_number=request.form["serial_number"] or "-",
+            quantity=int(request.form["quantity"] or 0),
+            unit=request.form["unit"] or "-",
+            category=request.form["category"] or "-",
+            location=request.form["location"] or "-",
+            min_stock=int(request.form["min_stock"] or 0),
+            remarks=request.form["remarks"] or "-",
+        )
         db.session.add(new_item)
         db.session.commit()
-        flash(f"New item {item_name} has been added successfully", "success")
+        flash(f"New item {new_item.item_name} added successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error: {e}", "danger")
+    return redirect(url_for("index"))
+
+
+@app.route("/retrieve_item/<int:id>", methods=["POST"])
+def retrieve_item(id):
+    item = Inventory.query.get_or_404(id)
+
+    try:
+        retrieve_amount = request.form.get("retrieve_amount", type=int)
+        user_id = request.form.get("user_id", type=int)
+        justification = request.form.get("justification", type=str)
+
+        if retrieve_amount is None:
+            flash("Please enter a valid quantity to retrieve.", "warning")
+        elif retrieve_amount <= 0:
+            flash("Please enter a positive quantity to retrieve.", "warning")
+        elif item.quantity <= 0:
+            flash(f"Item {item.item_name} is out of stock.", "warning")
+        elif retrieve_amount > item.quantity:
+            flash("Cannot retrieve more than available quantity.", "warning")
+        else:
+            item.quantity -= retrieve_amount
+            db.session.commit()
+            flash(
+                f"Successfully retrieved {retrieve_amount} {item.unit} of {item.item_name}.",
+                "success",
+            )
+
     except Exception as e:
         db.session.rollback()
         flash(f"Error: {e}", "danger")
@@ -81,32 +102,56 @@ def edit_item(id):
     item = Inventory.query.get_or_404(id)
     has_changes = False
 
-    def check_update(field_name, form_field):
+    def check_update(field, value, cast_type=str):
         nonlocal has_changes
-        new_value = request.form.get(form_field)
-        if getattr(item, field_name) != new_value:
-            setattr(item, field_name, new_value)
+        current = getattr(item, field)
+
+        if value == "":
+            value = None
+
+        if value is not None and cast_type != str:
+            try:
+                value = cast_type(value)
+            except ValueError:
+                value = None
+
+        if current != value:
+            setattr(item, field, value)
             has_changes = True
 
-    check_update('item_name', 'item_name')
-    check_update('brand', 'brand')
-    check_update('model', 'model')
-    check_update('serial_number', 'serial_number')
-    check_update('quantity', 'quantity')
-    check_update('unit', 'unit')
-    check_update('category', 'category')
-    check_update('location', 'location')
-    check_update('min_stock', 'min_stock')
-    check_update('remarks', 'remarks')
+    check_update("item_name", request.form.get("item_name"))
+    check_update("brand", request.form.get("brand"))
+    check_update("model", request.form.get("model"))
+    check_update("serial_number", request.form.get("serial_number"))
+    check_update("quantity", request.form.get("quantity"), int)
+    check_update("unit", request.form.get("unit"))
+    check_update("category", request.form.get("category"))
+    check_update("location", request.form.get("location"))
+    check_update("min_stock", request.form.get("min_stock"), int)
+    check_update("remarks", request.form.get("remarks"))
 
     if has_changes:
-        item.last_updated = lambda: datetime.now(timezone.utc)
+        item.last_updated = datetime.now(timezone.utc)
+        try:
+            db.session.commit()
+            flash(f"Item {item.item_name} updated successfully.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error: {e}", "danger")
+
+    return redirect(url_for("index"))
 
 
 @app.route("/delete_item/<int:id>", methods=["POST"])
 def delete_item(id):
     item = Inventory.query.get_or_404(id)
-    flash(f"Item {item.item_name} has been removed!", "danger")
+    try:
+        item.is_active = False
+        db.session.commit()
+        flash(f"Item {item.item_name} has been archived.", "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error: {e}", "danger")
     return redirect(url_for("index"))
 
 
@@ -118,53 +163,48 @@ def users():
 
 @app.route("/add_user", methods=["POST"])
 def add_user():
-    emp_id = request.form["emp_id"]
-    user_name = request.form["user_name"]
-    new_user = User(emp_id=emp_id, user_name=user_name)
-
     try:
+        new_user = User(
+            emp_id=request.form["emp_id"], user_name=request.form["user_name"]
+        )
         db.session.add(new_user)
         db.session.commit()
-        flash(f"User {user_name} was successfully added!", "success")
+        flash(f"User {new_user.user_name} added successfully.", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Error: {e}", "danger")
-
     return redirect(url_for("users"))
 
 
 @app.route("/edit_user/<int:id>", methods=["POST"])
 def edit_user(id):
+    user = User.query.get_or_404(id)
     try:
-        user = User.query.get_or_404(id)
         user.emp_id = request.form["emp_id"]
         user.user_name = request.form["user_name"]
         db.session.commit()
-        flash(f"User {user.user_name} has been successfully updated!", "success")
+        flash(f"User {user.user_name} updated successfully.", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Error: {e}", "danger")
-
     return redirect(url_for("users"))
 
 
 @app.route("/delete_user/<int:id>", methods=["POST"])
 def delete_user(id):
+    user = User.query.get_or_404(id)
     try:
-        user = User.query.get_or_404(id)
         db.session.delete(user)
         db.session.commit()
-        flash(f"User {user.user_name} has been removed!", "danger")
+        flash(f"User {user.user_name} deleted.", "danger")
     except Exception as e:
         db.session.rollback()
         flash(f"Error: {e}", "danger")
-
     return redirect(url_for("users"))
 
 
-with app.app_context():
-    db.create_all()
-
+# with app.app_context():
+#    db.create_all()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
