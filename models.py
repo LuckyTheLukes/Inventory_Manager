@@ -26,3 +26,17 @@ class Inventory(db.Model):
     date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     last_updated = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
     is_active = db.Column(db.Boolean, default=True)
+
+
+class InventoryHistory(db.Model):
+    __tablename__ = 'inventory_history'
+    id = db.Column(db.Integer, primary_key=True)
+    inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False)  # e.g., 'added', 'removed', 'updated'
+    quantity_changed = db.Column(db.Integer, nullable=False)
+    date_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    remarks = db.Column(db.String(255))
+
+    inventory = db.relationship('Inventory', backref='history')
+    user = db.relationship('User', backref='history')

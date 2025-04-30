@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from flask import Flask, flash, redirect, render_template, request, url_for
-from models import db, User, Inventory
+from models import db, User, Inventory, InventoryHistory
+from flask_migrate import Migrate
 
 
 app = Flask(__name__)
@@ -9,29 +10,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///workshop_inventory.sqlite3"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
-
-""" db = SQLAlchemy(app)
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    emp_id = db.Column(db.Integer, unique=True, nullable=False)
-    user_name = db.Column(db.String(100), nullable=False)
-
-class Inventory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    item_name = db.Column(db.String(100), nullable=False)
-    brand = db.Column(db.String(100))
-    model = db.Column(db.String(100))
-    serial_number = db.Column(db.String(100))
-    quantity = db.Column(db.Integer, nullable=False, default=0)
-    unit = db.Column(db.String(50))
-    category = db.Column(db.String(100))
-    location = db.Column(db.String(100))
-    min_stock = db.Column(db.Integer)
-    remarks = db.Column(db.String(255))
-    date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    last_updated = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
-    is_active = db.Column(db.Boolean, default=True) """
+migrage = Migrate(app, db)
 
 
 @app.route("/")
@@ -57,11 +36,25 @@ def add_item():
             remarks=request.form["remarks"] or "-",
         )
         db.session.add(new_item)
+        db.session.flush()  # Flush to get the ID for the history record
+
+        history_record = InventoryHistory(
+            inventory_id=new_item.id,
+            user_id=request.form["user_id"],
+            action="added",
+            quantity_changed=int(request.form["quantity"] or 0),
+            remarks=request.form["remarks"] or "-",
+        )
+        db.session.add(history_record)
+
         db.session.commit()
+
         flash(f"New item {new_item.item_name} added successfully.", "success")
+
     except Exception as e:
         db.session.rollback()
         flash(f"Error: {e}", "danger")
+
     return redirect(url_for("index"))
 
 
@@ -71,8 +64,6 @@ def retrieve_item(id):
 
     try:
         retrieve_amount = request.form.get("retrieve_amount", type=int)
-        user_id = request.form.get("user_id", type=int)
-        justification = request.form.get("justification", type=str)
 
         if retrieve_amount is None:
             flash("Please enter a valid quantity to retrieve.", "warning")
@@ -84,7 +75,21 @@ def retrieve_item(id):
             flash("Cannot retrieve more than available quantity.", "warning")
         else:
             item.quantity -= retrieve_amount
+            item.last_updated = datetime.now(timezone.utc)
+            
+            db.session.flush()  # Flush to get the ID for the history record
+
+            history_record = InventoryHistory(
+                inventory_id=item.id,
+                user_id=request.form["user_id"],
+                action="retrieved",
+                quantity_changed=retrieve_amount,
+                remarks=request.form["remarks"] or "-",
+            )
+            db.session.add(history_record)
+
             db.session.commit()
+
             flash(
                 f"Successfully retrieved {retrieve_amount} {item.unit} of {item.item_name}.",
                 "success",
@@ -101,6 +106,8 @@ def retrieve_item(id):
 def edit_item(id):
     item = Inventory.query.get_or_404(id)
     has_changes = False
+    previous_quantity = item.quantity
+    changes = []
 
     def check_update(field, value, cast_type=str):
         nonlocal has_changes
@@ -118,21 +125,36 @@ def edit_item(id):
         if current != value:
             setattr(item, field, value)
             has_changes = True
+            changes.append(f"{field} changed from '{current}' to '{value}'")
 
     check_update("item_name", request.form.get("item_name"))
-    check_update("brand", request.form.get("brand"))
-    check_update("model", request.form.get("model"))
-    check_update("serial_number", request.form.get("serial_number"))
-    check_update("quantity", request.form.get("quantity"), int)
-    check_update("unit", request.form.get("unit"))
-    check_update("category", request.form.get("category"))
-    check_update("location", request.form.get("location"))
-    check_update("min_stock", request.form.get("min_stock"), int)
-    check_update("remarks", request.form.get("remarks"))
+    check_update("brand", request.form.get("brand") or '-')
+    check_update("model", request.form.get("model") or "-")
+    check_update("serial_number", request.form.get("serial_number") or "-")
+    check_update("quantity", request.form.get("quantity") or 0, int)
+    check_update("unit", request.form.get("unit") or "-")
+    check_update("category", request.form.get("category") or "-")
+    check_update("location", request.form.get("location") or "-")
+    check_update("min_stock", request.form.get("min_stock") or 0, int)
+    check_update("remarks", request.form.get("remarks") or "-")
 
     if has_changes:
         item.last_updated = datetime.now(timezone.utc)
+        
         try:
+            new_quantity = request.form.get("quantity", type=int)
+            remarks_note = request.form.get("remarks") or "-"
+            changes_description = "; ".join(changes)
+            
+            history_record = InventoryHistory(
+                inventory_id=item.id,
+                user_id=request.form["user_id"],
+                action="updated",
+                quantity_changed=new_quantity - previous_quantity if new_quantity is not None else 0,
+                remarks=f"{remarks_note} | changes: {changes_description}",
+            )
+            db.session.add(history_record)
+
             db.session.commit()
             flash(f"Item {item.item_name} updated successfully.", "success")
         except Exception as e:
@@ -147,6 +169,16 @@ def delete_item(id):
     item = Inventory.query.get_or_404(id)
     try:
         item.is_active = False
+
+        history_record = InventoryHistory(
+            inventory_id=item.id,
+            user_id=request.form["user_id"],
+            action="deleted",
+            quantity_changed=item.quantity,
+            remarks=request.form.get("remarks") or "-",
+        )
+
+        db.session.add(history_record)    
         db.session.commit()
         flash(f"Item {item.item_name} has been archived.", "warning")
     except Exception as e:
@@ -203,8 +235,14 @@ def delete_user(id):
     return redirect(url_for("users"))
 
 
-# with app.app_context():
-#    db.create_all()
+@app.route("/history")
+def history():
+    history = InventoryHistory.query.all()
+    return render_template("history.html", history=history)
+
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

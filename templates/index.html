@@ -101,8 +101,8 @@
                             required>
                     </div>
                     <div class="mb-3">
-                        <label for="justification" class="form-label">Justification</label>
-                        <textarea class="form-control" name="justification" placeholder="Justification"></textarea>
+                        <label for="remarks" class="form-label">Remarks</label>
+                        <textarea class="form-control" name="remarks" placeholder="Remarks"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -126,6 +126,15 @@
                 </div>
 
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">User Name</label>
+                        <select class="form-select" name="user_id" required>
+                            <option value="" disabled selected>Select Your Name</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.user_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label for="item_name" class="form-label">Item Name</label>
                         <input type="text" class="form-control" name="item_name" value="{{ item.item_name or '' }}"
@@ -169,7 +178,7 @@
                     <div class="mb-3">
                         <label for="min_stock" class="form-label">Minimum Stock Threshold</label>
                         <input type="number" class="form-control" name="min_stock" value="{{ item.min_stock or '' }}"
-                            placeholder="Enter Minimum Stock">
+                            placeholder="Enter Minimum Stock Threshold">
                     </div>
                     <div class="mb-3">
                         <label for="remarks" class="form-label">Remarks / Description</label>
@@ -193,10 +202,24 @@
         <div class="modal-content">
             <form action="{{ url_for('delete_item', id=item.id) }}" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title">Delete User</h5>
+                    <h5 class="modal-title">Delete Item</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">User Name</label>
+                        <select class="form-select" name="user_id" required>
+                            <option value="" disabled selected>Select Your Name</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.user_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="remarks" class="form-label">Remarks</label>
+                        <textarea class="form-control" name="remarks"
+                            placeholder="Reason for deleting (Optional)"></textarea>
+                    </div>
                     Are you sure you want to delete <strong>{{ item.item_name }}</strong>?
                 </div>
                 <div class="modal-footer">
@@ -207,6 +230,7 @@
         </div>
     </div>
 </div>
+
 {% endfor %}
 
 <div class="modal fade" id="add_item" tabindex="-1">
@@ -218,17 +242,57 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control mb-2" placeholder="Item Name" name="item_name" required>
-                    <input type="text" class="form-control mb-2" placeholder="Brand" name="brand">
-                    <input type="text" class="form-control mb-2" placeholder="Model" name="model">
-                    <input type="text" class="form-control mb-2" placeholder="Serial Number" name="serial_number">
-                    <input type="number" class="form-control mb-2" placeholder="Quantity" name="quantity">
-                    <input type="text" class="form-control mb-2" placeholder="Unit" name="unit">
-                    <input type="text" class="form-control mb-2" placeholder="Category" name="category">
-                    <input type="text" class="form-control mb-2" placeholder="Location" name="location">
-                    <input type="number" class="form-control mb-2" placeholder="Minimum Stock Threshold"
-                        name="min_stock">
-                    <input type="text" class="form-control mb-2" placeholder="Remarks/Description" name="remarks">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">User</label>
+                        <select class="form-select" name="user_id" required>
+                            <option value="" disabled selected>Select Your Name</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.user_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="item_name" class="form-label">Item Name</label>
+                        <input type="text" class="form-control" placeholder="Item Name" name="item_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="brand" class="form-label">Brand</label>
+                        <input type="text" class="form-control" placeholder="Brand" name="brand">
+                    </div>
+                    <div class="mb-3">
+                        <label for="model" class="form-label">Model</label>
+                        <input type="text" class="form-control" placeholder="Model" name="model">
+                    </div>
+                    <div class="mb-3">
+                        <label for="serial_number" class="form-label">Serial Number</label>
+                        <input type="text" class="form-control" placeholder="Serial Number" name="serial_number">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" placeholder="Quantity" name="quantity">
+                    </div>
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">Unit</label>
+                        <input type="text" class="form-control" placeholder="Unit" name="unit">
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <input type="text" class="form-control" placeholder="Category" name="category">
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" placeholder="Location" name="location">
+                    </div>
+                    <div class="mb-3">
+                        <label for="min_stock" class="form-label">Minimum Stock Threshold</label>
+                        <input type="number" class="form-control" placeholder="Minimum Stock Threshold"
+                            name="min_stock">
+                    </div>
+                    <div class="mb-3">
+                        <label for="remarks" class="form-label">Remarks / Description</label>
+                        <textarea class="form-control" placeholder="Remarks/Description" name="remarks"
+                            rows="2"></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-outline-success" type="submit">Submit</button>
