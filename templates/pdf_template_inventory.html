@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AVL Inventory Report</title>
+    <style>
+        body {
+            font-family: "Helvetica", "Arial", sans-serif;
+            font-size: 11px;
+            color: #222;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #999;
+            padding: 5px 7px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .text-success {
+            color: green;
+        }
+
+        .text-danger {
+            color: red;
+        }
+
+        th,
+        td {
+            vertical-align: middle;
+        }
+
+
+        footer {
+            position: fixed;
+            bottom: 10px;
+            font-size: 9px;
+            text-align: center;
+            color: #888;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 20mm;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>AVL Inventory Report - {{ now.strftime('%Y-%m-%d') if now else '' }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>Serial Number</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Min. Stock Threshold</th>
+                <th>Remarks</th>
+                <th>Date Added</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                {% for cell in row %}
+                <td>{{ cell | safe }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <footer>
+        Generated on {{ now.strftime('%Y-%m-%d %H:%M') if now else '' }}
+    </footer>
+</body>
+
+</html>
