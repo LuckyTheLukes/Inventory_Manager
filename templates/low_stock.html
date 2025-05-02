@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock Items{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid my-5">
+
+    <div class="shadow rounded-4 p-4 mask" style="
+  background-color: rgba(96, 96, 96, 0.5);
+  backdrop-filter: blur(4px);">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <h1 class="mb-2" style="color: rgb(255, 255, 255);">Low Stock Items</h1>
+            <div class="d-flex gap-2 mt-1 mt-md-0">
+                <form id="csvForm" method="POST" action="{{ url_for('export_inventory_csv') }}">
+                    <input type="hidden" name="table_data" id="csv_table_data">
+                    <button type="submit" class="btn btn-dark mb-0">
+                        <i class="bi bi-filetype-csv m-1 fs-6"></i>Export as CSV
+                    </button>
+                </form>
+                <form id="pdfform" method="POST" action="{{ url_for('export_inventory_pdf') }}" target="_blank">
+                    <input type="hidden" name="table_data" id="table_data">
+                    <button type="submit" class="btn btn-danger mb-0">
+                        <i class="bi bi-file-earmark-pdf-fill m-1 fs-6"></i>Export as PDF
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <table
+            class="datatable table table-secondary table-striped table-hover table-bordered mb-2 mt-2 m-0 w-100 text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Item Name</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Serial Number</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Min. Stock Threshold</th>
+                    <th>Remarks/Description</th>
+                    <th>Date Added</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in low_stock_items %}
+                <tr class="{{ 'table-danger' if item.quantity <= item.min_stock else '' }}">
+                    <td>{{ item.item_name }}</td>
+                    <td>{{ item.brand or "-" }}</td>
+                    <td>{{ item.model or "-" }}</td>
+                    <td>{{ item.serial_number or "-" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit or "-" }}</td>
+                    <td>{{ item.category or "-" }}</td>
+                    <td>{{ item.location or "-" }}</td>
+                    <td>{{ item.min_stock }}</td>
+                    <td>{{ item.remarks or "-" }}</td>
+                    <td>{{ item.date_added.strftime('%Y-%m-%d %H:%M') if item.date_added else "-" }}</td>
+                    <td>{{ item.last_updated.strftime('%Y-%m-%d %H:%M') if item.last_updated else "-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.getElementById("pdfform").addEventListener("submit", function (e) {
+        // Get the table data
+        const table = $('.datatable').DataTable();
+        const rows = table.rows({ search: 'applied' }).nodes();
+        const cleanData = [];
+
+        rows.each(function (row) {
+            const cells = row.querySelectorAll("td");
+            const rowData = [];
+            cells.forEach((cell, index) => {
+                rowData.push(cell.innerText.trim());
+            });
+            cleanData.push(rowData);
+        });
+        // Convert the data to a JSON string
+        document.getElementById("table_data").value = JSON.stringify(cleanData);
+    });
+</script>
+
+<script>
+    document.getElementById("csvForm").addEventListener("submit", function (e) {
+        const table = $('.datatable').DataTable();
+        const rows = table.rows({ search: 'applied' }).nodes();
+        const cleanData = [];
+
+        rows.each(function (row) {
+            const cells = row.querySelectorAll("td");
+            const rowData = [];
+            cells.forEach(cell => rowData.push(cell.innerText.trim()));
+            cleanData.push(rowData);
+        });
+
+        document.getElementById("csv_table_data").value = JSON.stringify(cleanData);
+    });
+</script>
+
+{% endblock %}

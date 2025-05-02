@@ -21,6 +21,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center !important;
         }
+
         table.dataTable tbody td {
             background-color: transparent;
             text-align: center !important;
@@ -36,8 +37,11 @@
             <!-- Navigation bar -->
             <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
                 <div class="container-fluid">
-                    <a class="navbar-brand" href="/">AVL Inventory</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <a class="navbar-brand" href="/"><img src="/static/icons/projector.svg" alt="Logo"
+                            width="30" height="24" class="d-inline-block align-text-bottom"> AVL Inventory</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -47,6 +51,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/users">Users</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/low_stock">Low-Stock-Items</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="/history">History</a>
@@ -59,14 +66,14 @@
             <!-- Flash messages display -->
             <div style="position: fixed; top: 1rem; right: 1rem; z-index: 1055;">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
                 {% endwith %}
             </div>
 
@@ -86,10 +93,12 @@
     <!-- Initialize DataTables -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            $('.datatable').DataTable({
-                scrollX: true, // Disable horizontal scroll
-                autoWidth: true // Auto adjust column widths
-            });
+            if (!$.fn.DataTable.isDataTable('.datatable')) {
+                $('.datatable').DataTable({
+                    scrollX: true, // Enable horizontal scroll
+                    autoWidth: true // Auto adjust column widths
+                });
+            }
         });
     </script>
 

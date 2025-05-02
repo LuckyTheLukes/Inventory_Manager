@@ -1,7 +1,18 @@
-from datetime import datetime, timezone
-from flask import Flask, flash, redirect, render_template, request, url_for
+from datetime import datetime
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    make_response,
+)
 from models import db, User, Inventory, InventoryHistory
 from flask_migrate import Migrate
+import json
+from weasyprint import HTML
+import csv
 
 
 app = Flask(__name__)
@@ -75,8 +86,8 @@ def retrieve_item(id):
             flash("Cannot retrieve more than available quantity.", "warning")
         else:
             item.quantity -= retrieve_amount
-            item.last_updated = datetime.now(timezone.utc)
-            
+            item.last_updated = datetime.now()
+
             db.session.flush()  # Flush to get the ID for the history record
 
             history_record = InventoryHistory(
@@ -128,7 +139,7 @@ def edit_item(id):
             changes.append(f"{field} changed from '{current}' to '{value}'")
 
     check_update("item_name", request.form.get("item_name"))
-    check_update("brand", request.form.get("brand") or '-')
+    check_update("brand", request.form.get("brand") or "-")
     check_update("model", request.form.get("model") or "-")
     check_update("serial_number", request.form.get("serial_number") or "-")
     check_update("quantity", request.form.get("quantity") or 0, int)
@@ -139,18 +150,20 @@ def edit_item(id):
     check_update("remarks", request.form.get("remarks") or "-")
 
     if has_changes:
-        item.last_updated = datetime.now(timezone.utc)
-        
+        item.last_updated = datetime.now()
+
         try:
             new_quantity = request.form.get("quantity", type=int)
             remarks_note = request.form.get("remarks") or "-"
             changes_description = "; ".join(changes)
-            
+
             history_record = InventoryHistory(
                 inventory_id=item.id,
                 user_id=request.form["user_id"],
                 action="updated",
-                quantity_changed=new_quantity - previous_quantity if new_quantity is not None else 0,
+                quantity_changed=(
+                    new_quantity - previous_quantity if new_quantity is not None else 0
+                ),
                 remarks=f"{remarks_note} | changes: {changes_description}",
             )
             db.session.add(history_record)
@@ -178,7 +191,7 @@ def delete_item(id):
             remarks=request.form.get("remarks") or "-",
         )
 
-        db.session.add(history_record)    
+        db.session.add(history_record)
         db.session.commit()
         flash(f"Item {item.item_name} has been archived.", "warning")
     except Exception as e:
@@ -235,10 +248,143 @@ def delete_user(id):
     return redirect(url_for("users"))
 
 
+@app.route("/low_stock")
+def low_stock():
+    low_stock_items = Inventory.query.filter(
+        Inventory.is_active == True, Inventory.quantity <= Inventory.min_stock
+    ).all()
+    return render_template("low_stock.html", low_stock_items=low_stock_items)
+
+
 @app.route("/history")
 def history():
     history = InventoryHistory.query.all()
     return render_template("history.html", history=history)
+
+
+@app.route("/export/history_pdf", methods=["POST"])
+def export_history_pdf():
+    raw_data = request.form.get("table_data")
+    if not raw_data:
+        flash("No data to export.", "warning")
+        return redirect(url_for("history"))
+
+    try:
+        table_data = json.loads(raw_data)
+        rendered = render_template(
+            "pdf_template_history.html", rows=table_data, now=datetime.now()
+        )
+        pdf = HTML(string=rendered).write_pdf()
+        response = make_response(pdf)
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"history_report_{timestamp}.pdf"
+
+        response.headers["Content-Type"] = "application/pdf"
+        response.headers["Content-Disposition"] = f"inline; filename={filename}"
+        return response
+
+    except Exception as e:
+        flash(f"Error generating PDF: {e}", "danger")
+        return redirect(url_for("history"))
+
+
+@app.route("/export/history_csv", methods=["POST"])
+def export_history_csv():
+    raw_data = request.form.get("table_data")
+    if not raw_data:
+        flash("No data to export.", "warning")
+        return redirect(url_for("history"))
+
+    try:
+        rows = json.loads(raw_data)
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"history_report_{timestamp}.csv"
+        response = make_response()
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv"
+
+        writer = csv.writer(response.stream)
+        writer.writerow(
+            ["Date", "User Name", "Item Name", "Action", "Quantity Changed", "Remarks"]
+        )
+        writer.writerows(rows)
+
+        return response
+
+    except Exception as e:
+        flash(f"Error generating CSV: {e}", "danger")
+        return redirect(url_for("history"))
+
+
+@app.route("/export/inventory_pdf", methods=["POST"])
+def export_inventory_pdf():
+    raw_data = request.form.get("table_data")
+    if not raw_data:
+        flash("No data to export.", "warning")
+        return redirect(url_for("index"))
+
+    try:
+        table_data = json.loads(raw_data)
+        rendered = render_template(
+            "pdf_template_inventory.html", rows=table_data, now=datetime.now()
+        )
+        pdf = HTML(string=rendered).write_pdf()
+        response = make_response(pdf)
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"AVL_Inventory_{timestamp}.pdf"
+
+        response.headers["Content-Type"] = "application/pdf"
+        response.headers["Content-Disposition"] = f"inline; filename={filename}"
+        return response
+
+    except Exception as e:
+        flash(f"Error generating PDF: {e}", "danger")
+        return redirect(url_for("index"))
+
+
+@app.route("/export/inventory_csv", methods=["POST"])
+def export_inventory_csv():
+    raw_data = request.form.get("table_data")
+    if not raw_data:
+        flash("No data to export.", "warning")
+        return redirect(url_for("index"))
+
+    try:
+        rows = json.loads(raw_data)
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"Inventory_{timestamp}.csv"
+        response = make_response()
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv"
+
+        writer = csv.writer(response.stream)
+        writer.writerow(
+            [
+                "Item Name",
+                "Brand",
+                "Model",
+                "Serial Number",
+                "Quantity",
+                "Unit",
+                "Category",
+                "Location",
+                "Min Stock",
+                "Remarks",
+                "Date Added",
+                "Last Updated",
+            ]
+        )
+        writer.writerows(rows)
+
+        return response
+
+    except Exception as e:
+        flash(f"Error generating CSV: {e}", "danger")
+        return redirect(url_for("index"))
 
 
 with app.app_context():
