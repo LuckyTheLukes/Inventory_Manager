@@ -35,33 +35,59 @@
         <div class="mask" style="background-color: rgba(0, 0, 0, 0.4); height: 100vh;">
 
             <!-- Navigation bar -->
-            <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
-                    <a class="navbar-brand" href="/"><img src="/static/icons/projector.svg" alt="Logo"
-                            width="30" height="24" class="d-inline-block align-text-bottom"> AVL Inventory</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="/">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/users">Users</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/low_stock">Low-Stock-Items</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/history">History</a>
-                            </li>
-                        </ul>
-                    </div>
+              
+                  <!-- Brand -->
+                  <a class="navbar-brand d-flex align-items-center" href="/">
+                    <i class="bi bi-tools me-2"></i>AVL Workshop Inventory
+                  </a>
+              
+                  <!-- Mobile Toggle -->
+                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                          data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                          aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                  </button>
+              
+                  <!-- Nav Content -->
+                  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                      <li class="nav-item border-start border-end border-black pe-2 me-2 ps-2 ms-2">
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                          <i class="bi bi-house-fill me-2"></i>Home
+                        </a>
+                      </li>
+                      <li class="nav-item border-end border-black pe-2 me-2">
+                        <a class="nav-link {% if request.path == '/users' %}active{% endif %}" href="/users">
+                          <i class="bi bi-person-fill me-2"></i>Users
+                        </a>
+                      </li>
+                      <li class="nav-item border-end border-black pe-2 me-2">
+                        <a class="nav-link {% if request.path == '/low_stock' %}active{% endif %}" href="/low_stock">
+                          <i class="bi bi-exclamation-triangle-fill me-2"></i>Low Stock Items
+                        </a>
+                      </li>
+                      <li class="nav-item border-end border-black pe-2 me-2">
+                        <a class="nav-link {% if request.path == '/history' %}active{% endif %}" href="/history">
+                          <i class="bi bi-clock-history me-2"></i>History
+                        </a>
+                      </li>
+                    </ul>
+              
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                      <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="/settings">
+                          <i class="bi bi-gear-fill me-2"></i>Settings
+                        </a>
+                      </li>
+                    </ul>
+              
+                  </div>
                 </div>
-            </nav>
+              </nav>
+              
 
             <!-- Flash messages display -->
             <div style="position: fixed; top: 1rem; right: 1rem; z-index: 1055;">

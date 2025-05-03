@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+
+<div class="container my-5">
+
+    <div class="mx-auto shadow rounded-4 p-4 mask" style="max-width: 900px;
+                background-color: rgba(96, 96, 96, 0.5);
+                backdrop-filter: blur(4px);">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div class="container mt-4">
+                <h1 style="color: white;">Database Backup Settings</h1>
+                <form action="{{ url_for('update_settings') }}" method="POST" class="mt-4"
+                    style="color: rgb(224, 224, 224);">
+                    <div class="form-group">
+                        <label for="backup_dir">Destination Directory (Enter The Full Folder Path)</label>
+                        <input type="text" class="form-control" id="backup_dir" name="backup_dir"
+                            value="{{ backup_dir }}" placeholder="Choose Backup Destination path">
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="frequency">Frequency</label>
+                        <select class="form-control" id="frequency" name="frequency">
+                            <option value="DAILY" {% if frequency=='DAILY' %}selected{% endif %}>DAILY</option>
+                            <option value="WEEKLY" {% if frequency=='WEEKLY' %}selected{% endif %}>WEEKLY</option>
+                            <option value="MONTHLY" {% if frequency=='MONTHLY' %}selected{% endif %}>MONTHLY</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="time">Time</label>
+                        <input type="time" class="form-control" id="time" name="time" value="{{ time }}">
+                    </div>
+                    <button type="submit" class="btn btn-success mt-4 w-100 py-3">Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
