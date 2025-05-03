@@ -26,68 +26,85 @@
             background-color: transparent;
             text-align: center !important;
         }
+
+        table.dataTable thead th:first-child {
+            border-top-left-radius: 10px;
+            /* Round the edges of the table */
+            overflow: hidden;
+            /* Ensure content stays within rounded edges */
+        }
+
+        table.dataTable thead th:last-child {
+            border-top-right-radius: 10px;
+            /* Round the edges of the table */
+            overflow: hidden;
+            /* Ensure content stays within rounded edges */
+        }
     </style>
 </head>
 
 <body>
     <!-- Background image and mask overlay -->
     <div style="background-image: url('/static/background.jpg'); background-repeat: no-repeat; background-size: cover;">
-        <div class="mask" style="background-color: rgba(0, 0, 0, 0.4); height: 100vh;">
+        <div class="mask" style="background-color: rgba(0, 0, 0, 0.5); height: 100vh;">
 
             <!-- Navigation bar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
-              
-                  <!-- Brand -->
-                  <a class="navbar-brand d-flex align-items-center" href="/">
-                    <i class="bi bi-tools me-2"></i>AVL Workshop Inventory
-                  </a>
-              
-                  <!-- Mobile Toggle -->
-                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                          data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                          aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                  </button>
-              
-                  <!-- Nav Content -->
-                  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-              
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                      <li class="nav-item border-start border-end border-black pe-2 me-2 ps-2 ms-2">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                          <i class="bi bi-house-fill me-2"></i>Home
-                        </a>
-                      </li>
-                      <li class="nav-item border-end border-black pe-2 me-2">
-                        <a class="nav-link {% if request.path == '/users' %}active{% endif %}" href="/users">
-                          <i class="bi bi-person-fill me-2"></i>Users
-                        </a>
-                      </li>
-                      <li class="nav-item border-end border-black pe-2 me-2">
-                        <a class="nav-link {% if request.path == '/low_stock' %}active{% endif %}" href="/low_stock">
-                          <i class="bi bi-exclamation-triangle-fill me-2"></i>Low Stock Items
-                        </a>
-                      </li>
-                      <li class="nav-item border-end border-black pe-2 me-2">
-                        <a class="nav-link {% if request.path == '/history' %}active{% endif %}" href="/history">
-                          <i class="bi bi-clock-history me-2"></i>History
-                        </a>
-                      </li>
-                    </ul>
-              
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                      <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="/settings">
-                          <i class="bi bi-gear-fill me-2"></i>Settings
-                        </a>
-                      </li>
-                    </ul>
-              
-                  </div>
+
+                    <!-- Brand -->
+                    <a class="navbar-brand d-flex align-items-center" href="/">
+                        <i class="bi bi-tools me-2"></i>AVL Workshop Inventory
+                    </a>
+
+                    <!-- Mobile Toggle -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <!-- Nav Content -->
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item border-start border-end border-black pe-2 me-2 ps-2 ms-2">
+                                <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                                    <i class="bi bi-house-fill me-2"></i>Home
+                                </a>
+                            </li>
+                            <li class="nav-item border-end border-black pe-2 me-2">
+                                <a class="nav-link {% if request.path == '/users' %}active{% endif %}" href="/users">
+                                    <i class="bi bi-person-fill me-2"></i>Users
+                                </a>
+                            </li>
+                            <li class="nav-item border-end border-black pe-2 me-2">
+                                <a class="nav-link {% if request.path == '/low_stock' %}active{% endif %}"
+                                    href="/low_stock">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Low Stock Items
+                                </a>
+                            </li>
+                            <li class="nav-item border-end border-black pe-2 me-2">
+                                <a class="nav-link {% if request.path == '/history' %}active{% endif %}"
+                                    href="/history">
+                                    <i class="bi bi-clock-history me-2"></i>History
+                                </a>
+                            </li>
+                        </ul>
+
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.path == '/settings' %}active{% endif %}"
+                                    href="/settings">
+                                    <i class="bi bi-gear-fill me-2"></i>Settings
+                                </a>
+                            </li>
+                        </ul>
+
+                    </div>
                 </div>
-              </nav>
-              
+            </nav>
+
 
             <!-- Flash messages display -->
             <div style="position: fixed; top: 1rem; right: 1rem; z-index: 1055;">
@@ -122,7 +139,17 @@
             if (!$.fn.DataTable.isDataTable('.datatable')) {
                 $('.datatable').DataTable({
                     scrollX: true, // Enable horizontal scroll
-                    autoWidth: true // Auto adjust column widths
+                    autoWidth: true, // Auto adjust column widths
+                    language: {
+                        search: '<span style="color: white;">Search:</span>',
+                        lengthMenu: '<span style="color: white;">Show _MENU_ entries</span>',
+                        info: '<span style="color: white;">Showing _START_ to _END_ of _TOTAL_ entries</span>',
+                        infoEmpty: '<span style="color: white;">No entries to show</span>',
+                        infoFiltered: '<span style="color: white;">(filtered from _MAX_ total entries)</span>'
+                    },
+                    pageLength: 10, // Set default entries per page
+                    lengthMenu: [10, 25, 50, 100], // Entries per page options
+                    order: [], // Disable default ordering
                 });
             }
         });
