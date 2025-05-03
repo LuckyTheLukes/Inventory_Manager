@@ -59,6 +59,7 @@ AVL Inventory Manager is a lightweight, user-friendly inventory management syste
 
 - Python 3.9+
 - Windows OS (for auto-backup feature)
+- GTK-for-Windows https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2022-01-04/gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe
 
 ### Setup Steps:
 
