@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 from flask import (
     Flask,
     flash,
@@ -13,6 +14,9 @@ from flask_migrate import Migrate
 import json
 from weasyprint import HTML
 import csv
+import backup_setup
+import backup_script
+import configparser
 
 
 app = Flask(__name__)
@@ -385,10 +389,69 @@ def export_inventory_csv():
     except Exception as e:
         flash(f"Error generating CSV: {e}", "danger")
         return redirect(url_for("index"))
+    
 
+@app.route("/settings")
+def settings():
+    try:
+        config = configparser.ConfigParser()
+        settings_path = os.path.join(os.path.dirname(__file__), "settings.ini")
+        config.read(settings_path)
+
+        backup_dir = config.get("BackupSettings", "BACKUP_DIR", fallback="./db_backup")
+        frequency = config.get("BackupSettings", "FREQUENCY", fallback="DAILY")
+        time = config.get("BackupSettings", "TIME", fallback="00:00")
+
+        return render_template(
+            "settings.html",
+            backup_dir=backup_dir,
+            frequency=frequency,
+            time=time,
+        )
+    except Exception as e:
+        flash(f"Error loading settings: {e}", "danger")
+        return redirect(url_for("index"))
+
+
+
+@app.route("/update_settings", methods=['POST'])
+def update_settings():
+    try:
+        backup_dir = request.form.get("backup_dir", "./db_backup")
+        frequency = request.form.get("frequency", "DAILY").upper()
+        time = request.form.get("time", "00:00")
+
+        print(f"Backup Directory: {backup_dir}")
+        print(f"Frequency: {frequency}")
+        print(f"Time: {time}")
+
+        config = configparser.ConfigParser()
+        settings_path = os.path.join(os.path.dirname(__file__), "settings.ini")
+        config.read(settings_path)
+
+        config["BackupSettings"]["BACKUP_DIR"] = backup_dir
+        config["BackupSettings"]["FREQUENCY"] = frequency
+        config["BackupSettings"]["TIME"] = time
+
+        with open(settings_path, "w") as configfile:
+            config.write(configfile)
+
+        flash("Settings updated successfully.", "success")
+
+        backup_setup.create_task(force=True)
+        flash("Backup task recreated successfully.", "success")
+
+    except Exception as e:
+        flash(f"Error updating settings: {e}", "danger")
+
+    return redirect(url_for("settings"))
+
+
+backup_setup.create_task(force=False)
+backup_script.backup_database()
 
 with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=False, host="0.0.0.0")
