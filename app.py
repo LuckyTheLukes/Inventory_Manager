@@ -17,7 +17,13 @@ import csv
 import backup_setup
 import backup_script
 import configparser
+from version import __version__
 
+
+app_version = __version__
+app_name = "Workshop Inventory Management System"
+
+print(f"Running {app_name} - Version: {app_version}")
 
 app = Flask(__name__)
 app.secret_key = "S9uh4b$meDiJ#nBr"
