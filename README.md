@@ -1,4 +1,4 @@
-![version](https://img.shields.io/badge/version-1.0.0-blue)
+![version](https://img.shields.io/badge/version-1.0.1-blue)
 # AVL Inventory Manager
 
 AVL Inventory Manager is a lightweight, user-friendly inventory management system designed for local workshops or small warehouses. It allows staff to track inventory items, log item retrievals, and maintain user histories. The system also supports exporting reports and includes automated backup features.
