@@ -23,8 +23,8 @@ class Inventory(db.Model):
     location = db.Column(db.String(100))
     min_stock = db.Column(db.Integer)
     remarks = db.Column(db.String(255))
-    date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    last_updated = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
+    date_added = db.Column(db.DateTime, default=lambda: datetime.now())
+    last_updated = db.Column(db.DateTime, onupdate=lambda: datetime.now())
     is_active = db.Column(db.Boolean, default=True)
 
 
@@ -35,7 +35,7 @@ class InventoryHistory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     action = db.Column(db.String(50), nullable=False)  # e.g., 'added', 'removed', 'updated'
     quantity_changed = db.Column(db.Integer, nullable=False)
-    date_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    date_time = db.Column(db.DateTime, default=lambda: datetime.now())
     remarks = db.Column(db.String(255))
 
     inventory = db.relationship('Inventory', backref='history')
